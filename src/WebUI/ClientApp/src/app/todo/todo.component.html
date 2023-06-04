@@ -33,12 +33,20 @@
       <div class="clearfix">
         <div class="flex-fill">
           <form [formGroup]="searchFormGroup" class="form">
-            <tag-input id="searchTag" formControlName="searchTag" secondaryPlaceholder="Search by tag"
-                       (onAdd)="onAdd($event)" (onRemove)="onRemove($event)"
-                       [clearOnBlur]="true" [modelAsStrings]="true" (keydown.enter)="searchItem($event)">
-              <tag-input-dropdown [zIndex]="1100" [focusFirstElement]="true"  [autocompleteItems]="allTags">
-              </tag-input-dropdown>
-            </tag-input>
+            <div class="row">
+              <div class="col-sm-8">
+                <tag-input id="searchTag" formControlName="searchTag" secondaryPlaceholder="Search by tag"
+                           (onAdd)="onAdd($event)" (onRemove)="onRemove($event)"
+                           [clearOnBlur]="true" [modelAsStrings]="true" (keydown.enter)="searchItem($event)">
+                  <tag-input-dropdown [zIndex]="1100" [focusFirstElement]="true" [autocompleteItems]="allTags">
+                  </tag-input-dropdown>
+                </tag-input>
+              </div>
+              <div class="col-sm-8">
+                <input id="titleSearch" formControlName="searchTitle" placeholder="Search by title"
+                       (keyup)="onTextChange($event)" class="form-control" />
+              </div>
+            </div>
           </form>
         </div>
       </div>

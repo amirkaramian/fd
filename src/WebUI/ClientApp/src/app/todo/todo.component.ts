@@ -24,6 +24,8 @@ export class TodoComponent implements OnInit {
   priorityLevels: PriorityLevelDto[];
   selectedList: TodoListDto;
   searchList: TodoItemDto[];
+  filterSearchByTagList: TodoItemDto[];
+  filterSearchByTitleList: TodoItemDto[];
   selectedItem: TodoItemDto;
   newListEditor: any = {};
   listOptionsEditor: any = {};
@@ -41,11 +43,11 @@ export class TodoComponent implements OnInit {
     tag: [''],
   });
   searchFormGroup = this.fb.group({
-    searchTag: ['']
+    searchTag: [''],
+    searchTitle: [''],
   });
   currentTags: any;
   allTags: string[];
-  searchTags: any;
   constructor(
     private listsClient: TodoListsClient,
     private itemsClient: TodoItemsClient,
@@ -302,33 +304,89 @@ export class TodoComponent implements OnInit {
         });
       }
     });
-   
+
   }
-  onRemove(item) {
-    this.searchItem(item);
+  onRemove(tag) {
+    if (tag) {
+      var items = this.selectedList.items.filter(x => x.tag && x.tag.toLowerCase().includes(tag.toLowerCase()));
+      items.forEach((item) => {
+        var index = this.selectedList.items.indexOf(item);
+        if (index !== -1) {
+          this.selectedList.items.splice(index, 1);
+        }
+      })
+      if (this.searchFormGroup.value.searchTag.length == 0 && this.searchFormGroup.value.searchTitle.length == 0) {
+        this.selectedList.items = this.searchList;
+        this.searchList = [];
+      }
+    }
   }
   onAdd(item) {
     this.searchItem(item);
   }
   searchItem(value) {
-    if (!this.searchList) {
-      this.searchList = this.selectedList.items;
-    }
-    if (!value || this.searchFormGroup.value.searchTag.length == 0) {
-      this.selectedList.items = this.searchList;
-      return;
-    }
-    const filter: TodoItemDto[] = [];
-    this.searchFormGroup.value.searchTag.forEach((item) => {
-      var list = this.searchList.filter(t => t.tag && t.tag.toLowerCase().includes(item.toLowerCase()));
 
-      list.forEach(function (item) {
-        if (!filter.find(x => x.id == item.id))
-          filter.push(item);
-      });
-    });
-    this.selectedList.items = filter;
-    return;
+    this.onDearch(value, true);
+  }
+  public onTextChange(text) {
+    this.onDearch(text, false);
+  }
+  public onDearch(text, isTag) {
+
+
+    if (!this.searchList || this.searchList.length == 0) {
+      this.searchList = this.selectedList.items;
+      this.selectedList.items = [];
+    }
+
+    if (isTag) {
+
+      if (!this.filterSearchByTagList) {
+        this.filterSearchByTagList = [];
+      }
+      if (text && this.searchFormGroup.value.searchTag.length > 0) {
+        var list: TodoItemDto[] = [];
+        this.searchFormGroup.value.searchTag.forEach((item) => {
+          list = this.searchList.filter(t => t.tag && t.tag.toLowerCase().includes(item.toLowerCase()));
+          list.forEach((item) => {
+            if (!this.filterSearchByTagList.find(x => x.id == item.id))
+              this.filterSearchByTagList.push(item);
+          });
+        });
+
+        this.filterSearchByTagList.forEach((item) => {
+          if (!this.selectedList.items.find(x => x.id == item.id))
+            this.selectedList.items.push(item);
+        });
+      }
+
+    } else {
+
+      if (!this.filterSearchByTitleList) {
+        this.filterSearchByTitleList = [];
+      }
+      if (!text || this.searchFormGroup.value.searchTitle.length == 0) {
+        this.filterSearchByTitleList.forEach((item) => {
+          const index = this.selectedList.items.indexOf(item);
+          if (index !== -1) {
+            this.selectedList.items.splice(index, 1);
+          }
+        });
+
+      }
+      else {
+        this.filterSearchByTitleList = this.searchList.filter(t => t.title && t.title.toLowerCase().includes(this.searchFormGroup.value.searchTitle.toLowerCase()));
+
+        this.filterSearchByTitleList.forEach((item) => {
+          if (!this.selectedList.items.find(x => x.id == item.id))
+            this.selectedList.items.push(item);
+        });
+      }
+    }
+    if (this.searchFormGroup.value.searchTag.length == 0 && this.searchFormGroup.value.searchTitle.length == 0) {
+      this.selectedList.items = this.searchList;
+      this.searchList = [];
+    }
   }
 
 }
